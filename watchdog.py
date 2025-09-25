@@ -51,7 +51,7 @@ def check_sowa_sip_journal():
     N = 5
     try:
         out = subprocess.check_output(
-            ["sudo journalctl", "-u", SOWA_SIP_SERVICE, "-n", str(N), "--no-pager"],
+            ["sudo", "journalctl", "-u", SOWA_SIP_SERVICE, "-n", str(N), "--no-pager"],
             stderr=subprocess.DEVNULL
         ).decode("utf-8", errors="ignore").strip().splitlines()
 
