@@ -149,12 +149,13 @@ def main():
             log(f"⚠️ Нет пинга до {SOWA_SIP_PING_IP} — рестарт {SOWA_SIP_SERVICE}.")
             restart(SOWA_SIP_SERVICE)
         healthy = False
-        # === Проверка на цикличный 'Registration successful' ===
-    if check_sowa_sip_journal():
+    
+    elif check_sowa_sip_journal():
         if should_restart(SOWA_SIP_SERVICE):
             log(f"⚠️ {SOWA_SIP_SERVICE} зациклился на 'Registration successful' — рестарт.")
             restart(SOWA_SIP_SERVICE)
         healthy = False
+    
     elif not run(f"systemctl is-active --quiet {SOWA_SIP_SERVICE}"):
         if should_restart(SOWA_SIP_SERVICE):
             log(f"⚠️ {SOWA_SIP_SERVICE} не активен — рестарт.")
