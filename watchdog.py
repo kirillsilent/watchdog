@@ -112,7 +112,7 @@ def main():
             restart(f"wg-quick@{WG_IF}")
         else:
             log(f"🚨 {WG_IF} так и не поднялся после нескольких попыток — перезагружаю RPi")
-            run("reboot")
+            run("sudo reboot")
         healthy = False
 
     # === Sowa ===
