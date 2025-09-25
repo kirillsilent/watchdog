@@ -10,7 +10,7 @@ WG_PING_IP = "8.8.8.8"
 
 SOWA_SERVICE = "sowa.service"
 SOWA_SIP_SERVICE = "sowa_sip.service"
-SOWA_SIP_PING_IP = "172.16.102.2"   # <-- замени на свой IP
+SOWA_SIP_PING_IP = "172.16.105.2"   # <-- замени на свой IP
 
 LOGFILE = "/var/log/watchdog.log"
 STATE_DIR = "/run/watchdog"
