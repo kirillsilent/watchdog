@@ -88,8 +88,8 @@ def main():
         return
     elif disk_used > DISK_WARN:
         log(f"⚠️ Диск заполнен на {disk_used}% — чищу логи.")
-        run("journalctl --vacuum-time=7d")
-        run("find /var/log -type f -size +100M -delete")
+        run("sudo journalctl --vacuum-time=7d")
+        run("sudo find /var/log -type f -size +100M -delete")
         healthy = False
 
     # === Проверка нагрузки ===
