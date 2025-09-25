@@ -120,21 +120,26 @@ def main():
         run("reboot")
         return
 
-    # === WireGuard ===
-    if run(f"ip link show {WG_IF}"):
-        if not run(f"ping -I {WG_IF} -c2 -W2 {WG_PING_IP}"):
-            if should_restart("wg"):
-                log(f"⚠️ Нет пинга {WG_PING_IP} через {WG_IF} — рестарт wg-quick@{WG_IF}")
-                restart(f"wg-quick@{WG_IF}")
-            healthy = False
+    # === WireGuard ===if run(f"ip link show {WG_IF}"):
+    # интерфейс существует, проверяем пинг
+    if not run(f"ping -I {WG_IF} -c2 -W2 {WG_PING_IP}"):
+        if should_restart("wg"):
+            log(f"⚠️ Нет пинга {WG_PING_IP} через {WG_IF} — рестарт wg-quick@{WG_IF}")
+            restart(f"wg-quick@{WG_IF}")
+        else:
+            log(f"🚨 {WG_IF} не восстановился после {MAX_RESTARTS} рестартов — перезагружаю RPi")
+            run("sudo /sbin/reboot")
+        healthy = False
     else:
+        # интерфейс вообще отсутствует
         if should_restart("wg"):
             log(f"⚠️ Интерфейс {WG_IF} отсутствует — рестарт wg-quick@{WG_IF}")
             restart(f"wg-quick@{WG_IF}")
         else:
-            log(f"🚨 {WG_IF} так и не поднялся после нескольких попыток — перезагружаю RPi")
-            run("sudo reboot")
+            log(f"🚨 {WG_IF} так и не поднялся после {MAX_RESTARTS} попыток — перезагружаю RPi")
+            run("sudo /sbin/reboot")
         healthy = False
+
 
     # === Sowa ===
     if not run(f"systemctl is-active --quiet {SOWA_SERVICE}"):
