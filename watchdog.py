@@ -20,7 +20,7 @@ RESET_INTERVAL = 30   # сек (5 минут)
 
 DISK_WARN = 90
 DISK_CRIT = 95
-MAX_SYSLOAD = 8
+MAX_SYSLOAD = 10
 
 
 def log(msg):
@@ -75,7 +75,7 @@ def should_restart(name):
 
 def restart(service):
     log(f"Перезапускаю {service}")
-    run(f"systemctl restart {service}")
+    run(f"sudo systemctl restart {service}")
 
 
 def main():
@@ -96,6 +96,7 @@ def main():
     sysload = get_sysload()
     if sysload > MAX_SYSLOAD:
         log(f"⚠️ Высокая нагрузка (load={sysload}) — пропускаю итерацию.")
+        run("reboot")
         return
 
     # === WireGuard ===
@@ -106,7 +107,12 @@ def main():
                 restart(f"wg-quick@{WG_IF}")
             healthy = False
     else:
-        log(f"ℹ️ Интерфейс {WG_IF} пока не поднят.")
+        if should_restart("wg"):
+            log(f"⚠️ Интерфейс {WG_IF} отсутствует — рестарт wg-quick@{WG_IF}")
+            restart(f"wg-quick@{WG_IF}")
+        else:
+            log(f"🚨 {WG_IF} так и не поднялся после нескольких попыток — перезагружаю RPi")
+            run("reboot")
         healthy = False
 
     # === Sowa ===
