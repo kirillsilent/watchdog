@@ -43,7 +43,28 @@ def get_disk_usage():
 def get_sysload():
     with open("/proc/loadavg") as f:
         return float(f.read().split()[0])
+def check_sowa_sip_journal():
+    """
+    Проверяет последние строки журнала sowa_sip.service.
+    Если подряд N строк = 'Registration successful', возвращает True.
+    """
+    N = 5
+    try:
+        out = subprocess.check_output(
+            ["sudo journalctl", "-u", SOWA_SIP_SERVICE, "-n", str(N), "--no-pager"],
+            stderr=subprocess.DEVNULL
+        ).decode("utf-8", errors="ignore").strip().splitlines()
 
+        if len(out) < N:
+            return False
+
+        # оставим только содержимое сообщений
+        logs = [line for line in out if "Registration successful" in line]
+
+        return len(logs) == N  # все N строк совпали
+    except Exception as e:
+        log(f"⚠️ Ошибка при анализе журнала {SOWA_SIP_SERVICE}: {e}")
+        return False
 
 def should_restart(name):
     """Антицикличность рестартов"""
@@ -126,6 +147,12 @@ def main():
     if not run(f"ping -c2 -W2 {SOWA_SIP_PING_IP}"):
         if should_restart(SOWA_SIP_SERVICE):
             log(f"⚠️ Нет пинга до {SOWA_SIP_PING_IP} — рестарт {SOWA_SIP_SERVICE}.")
+            restart(SOWA_SIP_SERVICE)
+        healthy = False
+        # === Проверка на цикличный 'Registration successful' ===
+    if check_sowa_sip_journal():
+        if should_restart(SOWA_SIP_SERVICE):
+            log(f"⚠️ {SOWA_SIP_SERVICE} зациклился на 'Registration successful' — рестарт.")
             restart(SOWA_SIP_SERVICE)
         healthy = False
     elif not run(f"systemctl is-active --quiet {SOWA_SIP_SERVICE}"):
